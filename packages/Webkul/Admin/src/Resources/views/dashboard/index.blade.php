@@ -43,7 +43,7 @@
                         <template v-if="card.label">
                             <label class="card-header">
                                 @{{ card.label }}
-            
+
                                 <div class="icon-container">
                                     <a v-if="card.view_url" :href="card.view_url">
                                         <i class="icon eye-icon"></i>
@@ -52,7 +52,7 @@
                                 </div>
                             </label>
                         </template>
-            
+
                         <card-component
                             :index="index"
                             :card-type="card.card_type"
@@ -89,7 +89,7 @@
                 "
             ></line-chart>
 
-            <template v-else-if="['activities', 'stages_bar'].indexOf(cardType) > -1">
+            <template v-else-if="['activities', 'pipelines_bar'].indexOf(cardType) > -1">
                 <h3 v-if="dataCollection.header_data">
                     <template v-for="(header_data, index) in dataCollection.header_data">
                         @{{ header_data }}
@@ -102,11 +102,11 @@
                     <div class="bar">
                         <div
                             class="primary"
-                            :style="`width: ${data.count ? (data.count * 100) / (dataCollection.total || 10) : 0}%;`"
+                            :style="`width: ${data.count ? (data.count * 100) / (data.total || 10) : 0}%;`"
                         ></div>
                     </div>
 
-                    <span>@{{ `${data.count || 0}/${(dataCollection.total || 10)}` }}</span>
+                    <span>@{{ `${data.count || 0}/${(data.total || 10)}` }}</span>
                 </div>
             </template>
 
@@ -353,7 +353,7 @@
                         for(let index = 1; index < changeInIndex; index++) {
                             let sort = widget.sort + index;
                             let cardId = existingWidgets.find(card => card.sort == sort)?.card_id || this.cards.find(card => card.sort == sort)?.card_id
-                            
+
                             EventBus.$emit('applyCardFilter', { cardId });
                         }
                     }

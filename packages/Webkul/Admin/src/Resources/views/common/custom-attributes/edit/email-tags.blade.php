@@ -1,12 +1,13 @@
 @once
     @push('scripts')
-    
         <script type="text/x-template" id="email-tags-component-template">
             <div class="tags-control control">
                 <ul class="tags">
                     <li class="tag-choice" v-for="email in emails">
                         <input type="hidden" :name="controlName" :value="email"/>
+
                         @{{ email }}
+
                         <i class="icon close-icon" @click="removeTag(email)"></i>
                     </li>
 
@@ -35,7 +36,6 @@
 
         <script>
             Vue.component('email-tags-component', {
-
                 template: '#email-tags-component-template',
 
                 props: ['controlName', 'controlLabel', 'validations', 'data'],
@@ -52,19 +52,28 @@
 
                 methods: {
                     addTag: function() {
-                        this.emails.push(this.email_term)
+                        let sanitizedEmail = this.email_term.trim();
 
-                        this.email_term = '';
+                        if (this.validateEmail(sanitizedEmail)) {
+                            this.emails.push(sanitizedEmail);
+
+                            this.email_term = '';
+                        }
                     },
 
                     removeTag: function(email) {
                         const index = this.emails.indexOf(email);
 
                         Vue.delete(this.emails, index);
+                    },
+
+                    validateEmail: function (email) {
+                        const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+                        return re.test(String(email).toLowerCase());
                     }
                 }
             });
         </script>
-
     @endpush
 @endonce

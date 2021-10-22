@@ -27,7 +27,7 @@
         {!! view_render_event('admin.leads.view.header.before', ['lead' => $lead]) !!}
 
         <div class="page-header">
-            
+
             {{ Breadcrumbs::render('leads.view', $lead) }}
 
             <div class="page-title">
@@ -49,17 +49,24 @@
         {!! view_render_event('admin.leads.view.informations.before', ['lead' => $lead]) !!}
 
         <div class="page-content lead-view">
-            
+
             <div class="lead-content-left">
                 {!! view_render_event('admin.leads.view.informations.details.before', ['lead' => $lead]) !!}
 
                 <div class="panel">
                     <div class="panel-header" style="padding-top: 0">
                         {{ __('admin::app.leads.details') }}
+
+                        @if (($days = $lead->rotten_days) > 0)
+                            <span class="lead-rotten-info">
+                                <i class="icon alert-danger-icon"></i>
+                                {{ __('admin::app.leads.rotten-info', ['days' => $days]) }}
+                            </span>
+                        @endif
                     </div>
 
                     <div class="panel-body">
-                        
+
                         <div class="custom-attribute-view">
                             @include('admin::common.custom-attributes.view', [
                                 'customAttributes' => app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
@@ -81,38 +88,38 @@
                     <div class="panel-header">
                         {{ __('admin::app.leads.contact-person') }}
                     </div>
-    
+
                     <div class="panel-body custom-attribute-view">
-                        
+
                         <div class="attribute-value-row">
                             <div class="label">Name</div>
-                
+
                             <div class="value">
                                 <a href="{{ route('admin.contacts.persons.edit', $lead->person->id) }}" target="_blank">
                                     {{ $lead->person->name }}
                                 </a>
                             </div>
                         </div>
-                        
+
                         <div class="attribute-value-row">
                             <div class="label">Email</div>
-                
+
                             <div class="value">
                                 @include ('admin::common.custom-attributes.view.email', ['value' => $lead->person->emails])
                             </div>
                         </div>
-                        
+
                         <div class="attribute-value-row">
                             <div class="label">Contact Numbers</div>
-                
+
                             <div class="value">
                                 @include ('admin::common.custom-attributes.view.phone', ['value' => $lead->person->contact_numbers])
                             </div>
                         </div>
-                        
+
                         <div class="attribute-value-row">
                             <div class="label">Organization</div>
-                
+
                             <div class="value">
                                 @if ($lead->person->organization)
                                     <a href="{{ route('admin.contacts.organizations.edit', $lead->person->organization->id) }}" target="_blank">
@@ -135,44 +142,44 @@
                     <div class="panel-header">
                         {{ __('admin::app.leads.products') }}
                     </div>
-    
+
                     <div class="panel-body" style="position: relative">
                         @if ($lead->products->count())
                             <div class="lead-product-list">
 
                                 @foreach ($lead->products as $product)
-                                    
+
                                     <div class="lead-product">
                                         <div class="top-control-group">
                                             <div class="form-group">
                                                 <label>{{ __('admin::app.leads.item') }}</label>
-                            
+
                                                 <div class="control-faker">
                                                     {{ $product->name }}
                                                 </div>
                                             </div>
                                         </div>
-                            
+
                                         <div class="bottom-control-group" style="padding-right: 0;">
                                             <div class="form-group">
                                                 <label>{{ __('admin::app.leads.price') }}</label>
-                            
+
                                                 <div class="control-faker">
                                                     {{ $product->price }}
                                                 </div>
                                             </div>
-                            
+
                                             <div class="form-group">
                                                 <label>{{ __('admin::app.leads.quantity') }}</label>
-                            
+
                                                 <div class="control-faker">
                                                     {{ $product->quantity }}
                                                 </div>
                                             </div>
-                            
+
                                             <div class="form-group">
                                                 <label>{{ __('admin::app.leads.amount') }}</label>
-                            
+
                                                 <div class="control-faker">
                                                     {{ $product->price * $product->quantity }}
                                                 </div>
@@ -184,8 +191,8 @@
                             </div>
                         @else
                             <div class="empty-record">
-                                <img src="http://localhost/laravel/bagisto-crm/public/vendor/webkul/admin/assets/images/empty-table-icon.svg">
-                                
+                                <img src="{{ asset('vendor/webkul/admin/assets/images/empty-table-icon.svg') }}">
+
                                 <span>{{ __('admin::app.common.no-records-found') }}</span>
                             </div>
                         @endif
@@ -196,7 +203,7 @@
             </div>
 
             <div class="lead-content-right">
-                
+
                 @include('admin::leads.view.stage')
 
                 @include('admin::leads.view.activity-action')
@@ -212,7 +219,7 @@
     <form action="{{ route('admin.leads.update', $lead->id) }}" method="post" @submit.prevent="onSubmit" enctype="multipart/form-data">
         <modal id="updateLeadModal" :is-open="modalIds.updateLeadModal">
             <h3 slot="header-title">{{ __('admin::app.leads.edit-title') }}</h3>
-            
+
             <div slot="header-actions">
                 {!! view_render_event('admin.leads.view.edit.form_buttons.before', ['lead' => $lead]) !!}
 
@@ -227,7 +234,7 @@
                 {!! view_render_event('admin.leads.view.edit.form_controls.before', ['lead' => $lead]) !!}
 
                 @csrf()
-                
+
                 <input name="_method" type="hidden" value="PUT">
 
                 <tabs>
@@ -235,10 +242,16 @@
 
                     <tab name="{{ __('admin::app.leads.details') }}" :selected="true">
                         @include('admin::common.custom-attributes.edit', [
-                            'customAttributes' => app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
+                            'customAttributes'  => app('Webkul\Attribute\Repositories\AttributeRepository')->findWhere([
                                 'entity_type' => 'leads',
                             ]),
-                            'entity'           => $lead,
+                            'customValidations' => [
+                                'expected_close_date' => [
+                                    'date_format:yyyy-MM-dd',
+                                    'after:' .  \Carbon\Carbon::yesterday()->format('Y-m-d')
+                                ],
+                            ],
+                            'entity'            => $lead,
                         ])
                     </tab>
 

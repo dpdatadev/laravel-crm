@@ -6,7 +6,7 @@ return [
         "card_id"       => "leads",
         "sort"          => 1,
         "card_type"     => "bar_chart",
-        "view_url"      => "admin.leads.index",
+        // "view_url"      => "admin.leads.index",
         "label"         => 'admin::app.dashboard.leads_over_time',
         // "class_name"    => "Webkul\Admin\Helpers\DashboardHelper",
         // "method_name"   => "getLeads",
@@ -33,11 +33,11 @@ return [
         "label"         => 'admin::app.dashboard.top_leads',
     ], [
         "selected"      => true,
-        "card_id"       => "stages",
+        "card_id"       => "pipelines",
         "sort"          => 5,
-        "card_type"     => "stages_bar",
+        "card_type"     => "pipelines_bar",
         "data_class"    => "display-grid",
-        "label"         => 'admin::app.dashboard.stages',
+        "label"         => 'admin::app.dashboard.pipelines',
     ], [
         "selected"      => true,
         "card_id"       => "emails",

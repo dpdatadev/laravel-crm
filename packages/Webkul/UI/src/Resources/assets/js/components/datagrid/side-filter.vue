@@ -5,9 +5,9 @@
                 <span>{{ __("ui.datagrid.filter.title") }}</span>
 
                 <div class="right">
-                    <label @click="removeAll">{{
-                        __("ui.datagrid.filter.remove_all")
-                    }}</label>
+                    <label @click="removeAll">
+                        {{ __("ui.datagrid.filter.remove_all") }}
+                    </label>
 
                     <i class="icon close-icon" @click="toggleSidebarFilter"></i>
                 </div>
@@ -47,6 +47,7 @@
                         v-else-if="data.filterable && data.type == 'date_range'"
                     >
                         <date-range-basic
+                            :date-range-key="key"
                             :start-date="data.values[0]"
                             :end-date="data.values[1]"
                             @onChange="changeDateRange(key, $event)"
@@ -60,13 +61,12 @@
                             class="control"
                             @change="pushFieldValue(key, $event, data.index)"
                         >
-                            <option value="" disabled selected>
-                                {{ data.label }}
-                            </option>
                             <option
                                 :value="option.value"
                                 :key="index"
                                 v-for="(option, index) in data.dropdown_options"
+                                :selected="option.selected"
+                                :disabled="option.disabled"
                             >
                                 {{ option.label }}
                             </option>
@@ -82,9 +82,7 @@
 
                                 <i
                                     class="icon close-icon ml-10"
-                                    @click="
-                                        removeFieldValue(key, index, data.index)
-                                    "
+                                    @click="removeFieldValue(key, index, data.index)"
                                 ></i>
                             </span>
                         </div>
@@ -167,7 +165,9 @@ export default {
     computed: {
         ...mapState({
             filterData: state => state.filterData,
+
             tableData: state => state.tableData,
+
             sidebarFilter: state => state.sidebarFilter
         })
     },
@@ -186,13 +186,14 @@ export default {
         },
 
         pushFieldValue: function(key, { target }, indexKey) {
+            let targetValue = target.value.trim();
+
             this.addField[indexKey] = false;
 
-            const values =
-                (this.columns || this.tableData.columns)[key].values || [];
+            const values = (this.columns || this.tableData.columns)[key].values || [];
 
-            if (values.indexOf(target.value) == -1) {
-                values.push(target.value);
+            if (values.indexOf(targetValue) == -1) {
+                values.push(targetValue);
 
                 this.updateFilterValues({
                     key: indexKey,
@@ -200,13 +201,12 @@ export default {
                 });
             }
 
-            target.value = "";
-
             this.$forceUpdate();
         },
 
         removeFieldValue: function(key, index, indexKey) {
             const values = (this.columns || this.tableData.columns)[key].values;
+
             values.splice(index, 1);
 
             this.updateFilterValues({
@@ -218,28 +218,38 @@ export default {
         },
 
         removeAll: function() {
-            this.$store.state.filters = this.$store.state.filters.filter(
-                filter => filter.column == "view_type" && filter.val == "table"
-            );
+            if (this.$store.state.filters.length !== undefined) {
+                /**
+                 * For default table case.
+                 */
+                this.$store.state.filters = this.$store.state.filters.filter(
+                    filter => filter.column == "view_type" && filter.val == "table"
+                );
+            } else {
+                /**
+                 * For kanban case.
+                 *
+                 * To Do (@devansh-webkul): This needs to be supported by
+                 * all types present in the kanban columns. Currently added
+                 * for `created_at` because in `kanban-filter` need to
+                 * do some changes.
+                 */
+                this.updateFilterValues({
+                    key: 'created_at',
+                    values: ['', '']
+                });
+            }
 
-            (this.columns || this.tableData.columns).forEach(
-                (column, index) => {
-                    if (column.type && column.type == "date_range") {
-                        $(".flatpickr-input").val();
-                    }
-                }
-            );
+            this.resetAllDateRangePickers();
 
             this.$forceUpdate();
         },
 
         removeFilter: function({ type, key, index }) {
-            if (type == "add" && this.addField[index]) {
-                this.addField[index] = false;
-            }
-
             let values = (this.columns || this.tableData.columns)[key].values;
             values = "";
+
+            if (type === 'date_range') this.resetSpecificDateRangePicker(key);
 
             this.updateFilterValues({
                 key,
@@ -247,16 +257,6 @@ export default {
             });
 
             this.$forceUpdate();
-        },
-
-        changeDateRange: function(key, event) {
-            setTimeout(() => {
-                this.updateFilterValues({
-                    key,
-                    values: event,
-                    condition: "bw"
-                });
-            }, 0);
         },
 
         getFilteredValue: function(value, data) {
@@ -271,6 +271,46 @@ export default {
             }
 
             return value;
+        },
+
+        changeDateRange: function(key, event) {
+            setTimeout(() => {
+                this.updateFilterValues({
+                    key,
+                    values: event,
+                    condition: "bw"
+                });
+            }, 0);
+        },
+
+        resetAllDateRangePickers: function () {
+            let allDatePickers = document.querySelectorAll('.flatpickr-input');
+
+            allDatePickers.forEach((datePicker) => {
+                let fp = datePicker._flatpickr;
+
+                fp.set('minDate', '');
+
+                fp.set('maxDate', '');
+            });
+
+            $(allDatePickers).val('');
+        },
+
+        resetSpecificDateRangePicker: function(key) {
+            let specificRangeDiv = document.querySelector(`#dateRange${key}`);
+
+            let datePickers = specificRangeDiv.querySelectorAll('.flatpickr-input');
+
+            datePickers.forEach((datePicker) => {
+                let fp = datePicker._flatpickr;
+
+                fp.set('minDate', '');
+
+                fp.set('maxDate', '');
+            });
+
+            $(datePickers).val('');
         }
     }
 };

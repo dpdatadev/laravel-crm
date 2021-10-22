@@ -3,10 +3,13 @@
 namespace Webkul\Admin\DataGrids\Setting;
 
 use Illuminate\Support\Facades\DB;
+use Webkul\Admin\Traits\ProvideDropdownOptions;
 use Webkul\UI\DataGrid\DataGrid;
 
 class RoleDataGrid extends DataGrid
 {
+    use ProvideDropdownOptions;
+
     /**
      * Prepare query builder.
      *
@@ -35,39 +38,31 @@ class RoleDataGrid extends DataGrid
     public function addColumns()
     {
         $this->addColumn([
-            'index'           => 'id',
-            'label'           => trans('admin::app.datagrid.id'),
-            'type'            => 'string',
-            'sortable'        => true,
+            'index'    => 'id',
+            'label'    => trans('admin::app.datagrid.id'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'           => 'name',
-            'label'           => trans('admin::app.datagrid.name'),
-            'type'            => 'string',
-            'sortable'        => true,
+            'index'    => 'name',
+            'label'    => trans('admin::app.datagrid.name'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'      => 'description',
-            'label'      => trans('admin::app.datagrid.description'),
-            'type'       => 'string',
-            'sortable'   => false,
+            'index'    => 'description',
+            'label'    => trans('admin::app.datagrid.description'),
+            'type'     => 'string',
+            'sortable' => false,
         ]);
 
         $this->addColumn([
             'index'            => 'permission_type',
             'label'            => trans('admin::app.datagrid.permission_type'),
             'type'             => 'dropdown',
-            'dropdown_options' => [
-                [
-                    'label' => trans('admin::app.settings.roles.all'),
-                    'value' => 'all',
-                ], [
-                    'label' => trans('admin::app.settings.roles.custom'),
-                    'value' => 'custom',
-                ],
-            ],
+            'dropdown_options' => $this->getRoleDropdownOptions(),
             'sortable'         => false,
         ]);
     }

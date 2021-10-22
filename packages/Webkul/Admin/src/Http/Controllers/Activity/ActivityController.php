@@ -200,7 +200,6 @@ class ActivityController extends Controller
 
         if (request()->ajax()) {
             return response()->json([
-                'status'  => true,
                 'message' => trans('admin::app.activities.update-success', ['type' => trans('admin::app.activities.' . $activity->type)]),
             ]);
         } else {
@@ -294,12 +293,10 @@ class ActivityController extends Controller
             Event::dispatch('activity.delete.after', $id);
 
             return response()->json([
-                'status'    => true,
-                'message'   => trans('admin::app.activities.destroy-success', ['type' => trans('admin::app.activities.' . $activity->type)]),
+                'message' => trans('admin::app.activities.destroy-success', ['type' => trans('admin::app.activities.' . $activity->type)]),
             ], 200);
         } catch (\Exception $exception) {
             return response()->json([
-                'status'  => false,
                 'message' => trans('admin::app.activities.destroy-failed', ['type' => trans('admin::app.activities.' . $activity->type)]),
             ], 400);
         }
@@ -312,13 +309,16 @@ class ActivityController extends Controller
      */
     public function massDestroy()
     {
-        $data = request()->all();
+        foreach (request('rows') as $activityId) {
+            Event::dispatch('activity.delete.before', $activityId);
 
-        $this->activityRepository->destroy($data['rows']);
+            $this->activityRepository->delete($activityId);
+
+            Event::dispatch('activity.delete.after', $activityId);
+        }
 
         return response()->json([
-            'status'    => true,
-            'message'   => trans('admin::app.response.destroy-success', ['name' => trans('admin::app.activities.title')])
+            'message' => trans('admin::app.response.destroy-success', ['name' => trans('admin::app.activities.title')])
         ]);
     }
 }

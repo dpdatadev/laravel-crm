@@ -154,7 +154,7 @@ class EmailController extends Controller
 
         session()->flash('success', trans('admin::app.mail.create-success'));
 
-        return redirect()->back();
+        return redirect()->route('admin.mail.index', ['route'   => 'inbox']);
     }
 
     /**
@@ -201,7 +201,6 @@ class EmailController extends Controller
 
         if (request()->ajax()) {
             $response = [
-                'status'  => true,
                 'message' => trans('admin::app.mail.update-success'),
             ];
 
@@ -271,8 +270,7 @@ class EmailController extends Controller
 
             if (request()->ajax()) {
                 return response()->json([
-                    'status'    => true,
-                    'message'   => trans('admin::app.mail.delete-success'),
+                    'message' => trans('admin::app.mail.delete-success'),
                 ], 200);
             } else {
                 session()->flash('success', trans('admin::app.mail.delete-success'));
@@ -286,7 +284,6 @@ class EmailController extends Controller
         } catch(\Exception $exception) {
             if (request()->ajax()) {
                 return response()->json([
-                    'status'  => false,
                     'message' => trans('admin::app.mail.delete-failed'),
                 ], 400);
             } else {
@@ -307,17 +304,12 @@ class EmailController extends Controller
         foreach (request('rows') as $emailId) {
             Event::dispatch('email.delete.before', $emailId);
 
-            $email = $this->emailRepository->find($emailId);
+            $this->emailRepository->delete($emailId);
 
-            if ($email) {
-                $this->emailRepository->delete($email);
-
-                Event::dispatch('email.delete.after', $email);
-            }
+            Event::dispatch('email.delete.after', $emailId);
         }
 
         return response()->json([
-            'status'  => true,
             'message' => trans('admin::app.mail.destroy-success'),
         ]);
     }

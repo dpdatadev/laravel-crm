@@ -3,14 +3,13 @@
 namespace Webkul\Admin\Http\Controllers\Setting;
 
 use Illuminate\Support\Facades\Event;
-
-use Webkul\User\Repositories\RoleRepository;
 use Webkul\Admin\Http\Controllers\Controller;
+use Webkul\User\Repositories\RoleRepository;
 
 class RoleController extends Controller
 {
     /**
-     * RoleRepository object
+     * Role repository instance.
      *
      * @var \Webkul\User\Repositories\RoleRepository
      */
@@ -73,8 +72,6 @@ class RoleController extends Controller
             if (! isset($roleData['permissions'])) {
                 $roleData['permissions'] = [];
             }
-
-            array_push($roleData['permissions'], "admin.datagrid.api");
         }
 
         $role = $this->roleRepository->create($roleData);
@@ -119,7 +116,9 @@ class RoleController extends Controller
         $roleData = request()->all();
 
         if ($roleData['permission_type'] == 'custom') {
-            array_push($roleData['permissions'], "admin.datagrid.api");
+            if (! isset($roleData['permissions'])) {
+                $roleData['permissions'] = [];
+            }
         }
 
         $role = $this->roleRepository->update($roleData, $id);
@@ -140,7 +139,6 @@ class RoleController extends Controller
     public function destroy($id)
     {
         $response = [
-            'status'       => false,
             'responseCode' => 400,
         ];
 
@@ -149,11 +147,11 @@ class RoleController extends Controller
         if ($role->admins && $role->admins->count() >= 1) {
             $response['message'] = trans('admin::app.settings.roles.being-used');
 
-            session()->flash('error', $message);
+            session()->flash('error', $response['message']);
         } else if ($this->roleRepository->count() == 1) {
             $response['message'] = trans('admin::app.settings.roles.last-delete-error');
 
-            session()->flash('error', $message);
+            session()->flash('error', $response['message']);
         } else {
             try {
                 Event::dispatch('settings.role.delete.before', $id);
@@ -168,14 +166,12 @@ class RoleController extends Controller
                     $message = trans('admin::app.settings.roles.delete-success');
 
                     $response = [
-                        'status'        => true,
-                        'responseCode'  => 200,
-                        'message'       => $message,
+                        'responseCode' => 200,
+                        'message'      => $message,
                     ];
 
                     session()->flash('success', $message);
                 }
-
             } catch (\Exception $exception) {
                 $message = $exception->getMessage();
 

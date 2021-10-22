@@ -718,8 +718,8 @@ body {
                     width: 24px;
                     height: 24px;
                     position: absolute;
-                    right: 45px;
-                    top: 5px;
+                    right: 50px;
+                    top: 9px;
                     cursor: pointer;
                 }
             }
@@ -730,7 +730,48 @@ body {
                 cursor: pointer;
                 position: absolute;
                 right: 5px;
-                top: 5px;
+                top: 9px;
+            }
+        }
+    }
+
+    table {
+        box-shadow: none;
+        
+        tr {
+            th {
+                &:first-child {
+                    width: 40px;
+                }
+
+                &:last-child {
+                    width: 40px;
+                }
+            }
+
+            td {
+                &.dragable-icon,
+                &.delete-icon {
+                    .icon {
+                        width: 24px;
+                        height: 24px;
+                        margin-top: 9px;
+                        cursor: pointer;
+                    }
+                }
+
+                .form-group {
+                    .control {
+                        margin-top: 0;
+                        margin-bottom: 0;
+                    }
+                }
+            }
+
+            &:not(.draggable) {
+                .control {
+                    background-color: #f0f0f0;;
+                }
             }
         }
     }
@@ -861,6 +902,23 @@ body {
 
         .panel {
             margin-bottom: 30px;
+
+            .lead-rotten-info {
+                float: right;
+                font-weight: 400;
+                font-size: 14px;
+                color: #FF4D50;
+                background: #ffd0d6;
+                padding: 2px 12px;
+                border-radius: 4px;
+
+                .icon {
+                    width: 16px;
+                    height: 16px;
+                    margin-top: 3px;
+                    margin-right: 5px;
+                }
+            }
         }
     }
 
@@ -1417,7 +1475,6 @@ body {
                 }
             }
 
-            &.name,
             &.created_at {
                 width: 200px;
             }
@@ -1904,9 +1961,53 @@ body {
             }
         }
     }
+
+    .date-panel {
+        margin-top: 5px;
+        font-size: $font-size-sm;
+        display: inline-block;
+        width: 100%;
+
+        .pull-left {
+            float: left;
+        }
+
+        .pull-right {
+            float: right;
+        }
+
+        .pull-left,
+        .pull-right {
+            .icon {
+                width: 18px;
+                height: 18px;
+                vertical-align: middle;
+            }
+
+            label {
+                color: $secondary-font-color;
+                font-weight: $font-weight-medium;
+            }
+
+            span {
+                color: $font-color;
+            }
+        }
+    }
 }
 
-.switch-icons-container {
+.switch-pipeline-container {
+    margin-right: 6px;
+    display: inline-block;
+
+    .control {
+        margin: 0;
+        height: 40px;
+        border: 1px solid #C1C2C3;
+    }
+}
+
+.switch-view-container {
     margin-left: -5px;
     margin-right: 6px;
     vertical-align: top;
@@ -1972,10 +2073,11 @@ body {
                 }
 
                 td {
-                    vertical-align: middle;
+                    vertical-align: top;
 
                     &.actions {
                         width: 50px;
+                        vertical-align: middle;
 
                         .icon {
                             cursor: pointer;

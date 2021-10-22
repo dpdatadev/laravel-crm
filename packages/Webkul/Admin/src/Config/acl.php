@@ -19,28 +19,73 @@ return [
     ], [
         'key'   => 'leads.edit',
         'name'  => 'admin::app.acl.edit',
-        'route' => ['admin.leads.edit', 'admin.leads.update'],
+        'route' => ['admin.leads.edit', 'admin.leads.update', 'admin.leads.mass_update'],
         'sort'  => 2,
     ], [
         'key'   => 'leads.delete',
         'name'  => 'admin::app.acl.delete',
-        'route' => 'admin.leads.delete',
+        'route' => ['admin.leads.delete', 'admin.leads.mass_delete'],
+        'sort'  => 3,
+    ],  [
+        'key'   => 'quotes',
+        'name'  => 'admin::app.acl.quotes',
+        'route' => 'admin.quotes.index',
+        'sort'  => 3,
+    ], [
+        'key'   => 'quotes.create',
+        'name'  => 'admin::app.acl.create',
+        'route' => ['admin.quotes.create', 'admin.quotes.store'],
+        'sort'  => 1,
+    ], [
+        'key'   => 'quotes.edit',
+        'name'  => 'admin::app.acl.edit',
+        'route' => ['admin.quotes.edit', 'admin.quotes.update'],
+        'sort'  => 2,
+    ], [
+        'key'   => 'quotes.delete',
+        'name'  => 'admin::app.acl.delete',
+        'route' => ['admin.quotes.delete', 'admin.quotes.mass_delete'],
         'sort'  => 3,
     ],  [
         'key'   => 'mail',
         'name'  => 'admin::app.acl.mail',
         'route' => 'admin.mail.index',
-        'sort'  => 3,
+        'sort'  => 4,
+    ], [
+        'key'   => 'mail.inbox',
+        'name'  => 'admin::app.acl.inbox',
+        'route' => 'admin.mail.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'mail.draft',
+        'name'  => 'admin::app.acl.draft',
+        'route' => 'admin.mail.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'mail.outbox',
+        'name'  => 'admin::app.acl.outbox',
+        'route' => 'admin.mail.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'mail.sent',
+        'name'  => 'admin::app.acl.sent',
+        'route' => 'admin.mail.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'mail.trash',
+        'name'  => 'admin::app.acl.trash',
+        'route' => 'admin.mail.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'mail.create',
+        'name'  => 'admin::app.acl.create',
+        'route' => ['admin.mail.index', 'admin.mail.store'],
+        'sort'  => 2,
     ], [
         'key'   => 'mail.view',
         'name'  => 'admin::app.acl.view',
         'route' => 'admin.mail.view',
         'sort'  => 1,
-    ], [
-        'key'   => 'mail.create',
-        'name'  => 'admin::app.acl.create',
-        'route' => 'admin.mail.store',
-        'sort'  => 2,
     ], [
         'key'   => 'mail.edit',
         'name'  => 'admin::app.acl.edit',
@@ -55,7 +100,7 @@ return [
         'key'   => 'activities',
         'name'  => 'admin::app.acl.activities',
         'route' => 'admin.activities.index',
-        'sort'  => 4,
+        'sort'  => 5,
     ], [
         'key'   => 'activities.create',
         'name'  => 'admin::app.acl.create',
@@ -75,7 +120,7 @@ return [
         'key'   => 'contacts',
         'name'  => 'admin::app.acl.contacts',
         'route' => 'admin.contacts.users.index',
-        'sort'  => 5,
+        'sort'  => 6,
     ],  [
         'key'   => 'contacts.persons',
         'name'  => 'admin::app.acl.persons',
@@ -120,7 +165,7 @@ return [
         'key'   => 'products',
         'name'  => 'admin::app.acl.products',
         'route' => 'admin.products.index',
-        'sort'  => 6,
+        'sort'  => 7,
     ], [
         'key'   => 'products.create',
         'name'  => 'admin::app.acl.create',
@@ -140,11 +185,11 @@ return [
         'key'   => 'settings',
         'name'  => 'admin::app.acl.settings',
         'route' => 'admin.settings.index',
-        'sort'  => 7,
+        'sort'  => 8,
     ], [
         'key'   => 'settings.user',
         'name'  => 'admin::app.acl.user',
-        'route' => 'admin.settings.groups.index',
+        'route' => ['admin.settings.groups.index', 'admin.settings.roles.index', 'admin.settings.users.index'],
         'sort'  => 1,
     ], [
         'key'   => 'settings.user.groups',
@@ -199,7 +244,7 @@ return [
     ], [
         'key'   => 'settings.user.users.edit',
         'name'  => 'admin::app.acl.edit',
-        'route' => ['admin.settings.users.edit', 'admin.settings.users.update'],
+        'route' => ['admin.settings.users.edit', 'admin.settings.users.update', 'admin.settings.users.mass_update'],
         'sort'  => 2,
     ], [
         'key'   => 'settings.user.users.delete',
@@ -209,13 +254,33 @@ return [
     ], [
         'key'   => 'settings.lead',
         'name'  => 'admin::app.acl.lead',
-        'route' => 'admin.settings.sources.index',
+        'route' => ['admin.settings.pipelines.index', 'admin.settings.sources.index', 'admin.settings.types.index'],
         'sort'  => 2,
+    ], [
+        'key'   => 'settings.lead.pipelines',
+        'name'  => 'admin::app.acl.pipelines',
+        'route' => 'admin.settings.pipelines.index',
+        'sort'  => 1,
+    ], [
+        'key'   => 'settings.lead.pipelines.create',
+        'name'  => 'admin::app.acl.create',
+        'route' => ['admin.settings.pipelines.create', 'admin.settings.pipelines.store'],
+        'sort'  => 1,
+    ], [
+        'key'   => 'settings.lead.pipelines.edit',
+        'name'  => 'admin::app.acl.edit',
+        'route' => ['admin.settings.pipelines.edit', 'admin.settings.pipelines.update'],
+        'sort'  => 2,
+    ], [
+        'key'   => 'settings.lead.pipelines.delete',
+        'name'  => 'admin::app.acl.delete',
+        'route' => 'admin.settings.pipelines.delete',
+        'sort'  => 3,
     ], [
         'key'   => 'settings.lead.sources',
         'name'  => 'admin::app.acl.sources',
         'route' => 'admin.settings.sources.index',
-        'sort'  => 1,
+        'sort'  => 2,
     ], [
         'key'   => 'settings.lead.sources.create',
         'name'  => 'admin::app.acl.create',
@@ -235,7 +300,7 @@ return [
         'key'   => 'settings.lead.types',
         'name'  => 'admin::app.acl.types',
         'route' => 'admin.settings.types.index',
-        'sort'  => 2,
+        'sort'  => 3,
     ], [
         'key'   => 'settings.lead.types.create',
         'name'  => 'admin::app.acl.create',
@@ -254,7 +319,7 @@ return [
     ], [
         'key'   => 'settings.automation',
         'name'  => 'admin::app.acl.automation',
-        'route' => 'admin.settings.attributes.index',
+        'route' => ['admin.settings.attributes.index', 'admin.settings.email_templates.index', 'admin.settings.workflows.index'],
         'sort'  => 3,
     ], [
         'key'   => 'settings.automation.attributes',
@@ -269,7 +334,7 @@ return [
     ], [
         'key'   => 'settings.automation.attributes.edit',
         'name'  => 'admin::app.acl.edit',
-        'route' => ['admin.settings.attributes.edit', 'admin.settings.attributes.update'],
+        'route' => ['admin.settings.attributes.edit', 'admin.settings.attributes.update', 'admin.settings.attributes.mass_update'],
         'sort'  => 2,
     ], [
         'key'   => 'settings.automation.attributes.delete',
@@ -329,12 +394,22 @@ return [
     ], [
         'key'   => 'settings.other_settings.tags.create',
         'name'  => 'admin::app.acl.create',
-        'route' => ['admin.settings.tags.create', 'admin.settings.tags.store'],
+        'route' => ['admin.settings.tags.create', 'admin.settings.tags.store', 'admin.leads.tags.store'],
+        'sort'  => 1,
+    ], [
+        'key'   => 'settings.other_settings.tags.edit',
+        'name'  => 'admin::app.acl.edit',
+        'route' => ['admin.settings.tags.edit', 'admin.settings.tags.update'],
         'sort'  => 1,
     ], [
         'key'   => 'settings.other_settings.tags.delete',
         'name'  => 'admin::app.acl.delete',
-        'route' => 'admin.settings.tags.delete',
+        'route' => ['admin.settings.tags.delete', 'admin.settings.tags.mass_delete', 'admin.leads.tags.delete'],
         'sort'  => 2,
+    ], [
+        'key'   => 'configuration',
+        'name'  => 'admin::app.acl.configuration',
+        'route' => 'admin.configuration.index',
+        'sort'  => 9,
     ]
 ];

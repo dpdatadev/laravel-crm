@@ -31,9 +31,9 @@
                         v-model="massActionValue"
                         v-validate="'required'"
                     >
-                        <option value="NA" disbaled="disbaled">{{
-                            __("ui.datagrid.massaction.select_action")
-                        }}</option>
+                        <option value="NA" disbaled="disbaled">
+                            {{ __("ui.datagrid.massaction.select_action") }}
+                        </option>
 
                         <option
                             :value="massAction"
@@ -51,9 +51,9 @@
                         v-validate="'required'"
                         v-if="massActionValue.type == 'update'"
                     >
-                        <option value="NA" disbaled="disbaled">{{
-                            __("ui.datagrid.massaction.select_action")
-                        }}</option>
+                        <option value="NA" disbaled="disbaled">
+                            {{ __("ui.datagrid.massaction.select_action") }}
+                        </option>
 
                         <option
                             :key="key"
@@ -107,15 +107,7 @@
                     v-if="! tableData.tabFilters.length > 0"
                 ></pagination-component>
 
-                <div class="switch-icons-container" v-if="switchPageUrl">
-                    <a class="icon-container" :href="switchPageUrl">
-                        <i class="icon layout-column-line-icon"></i>
-                    </a>
-
-                    <a class="icon-container active">
-                        <i class="icon table-line-active-icon"></i>
-                    </a>
-                </div>
+                <slot name="extra-filters"></slot>
 
                 <div
                     class="filter-btn"
@@ -183,31 +175,12 @@
                         @click="$store.state.customTabFilter = false"
                     ></i>
 
-                    <div class="form-group date">
-                        <date>
-                            <input
-                                type="text"
-                                class="control half"
-                                v-model="custom_filter[0]"
-                                :placeholder="
-                                    __('ui.datagrid.filter.start_date')
-                                "
-                            />
-                        </date>
-
-                        <span class="middle-text">{{
-                            __("ui.datagrid.filter.to")
-                        }}</span>
-
-                        <date>
-                            <input
-                                type="text"
-                                class="control half"
-                                v-model="custom_filter[1]"
-                                :placeholder="__('ui.datagrid.filter.end_date')"
-                            />
-                        </date>
-                    </div>
+                    <date-range-basic
+                        date-range-key="duration"
+                        :start-date="custom_filter[0]"
+                        :end-date="custom_filter[1]"
+                        @onChange="changeDateRange($event)"
+                    ></date-range-basic>
 
                     <button
                         type="button"
@@ -250,36 +223,56 @@
 import { mapState, mapActions } from "vuex";
 
 export default {
-    props: ["switchPageUrl", "tabs"],
+    props: ["tabs"],
 
     data: function() {
         return {
             type: null,
+
             filters: [],
+
             perPage: 10,
+
             debounce: {},
+
             sortAsc: "asc",
+
             searchValue: "",
+
             sortDesc: "desc",
+
             stringValue: null,
+
             booleanValue: null,
+
             massActionValue: "NA",
+
             sidebarFilter: false,
+
             stringCondition: null,
+
             numberCondition: null,
+
             booleanCondition: null,
+
             datetimeCondition: null,
+
             massActionOptionValue: "NA",
+
             custom_filter: [null, null],
+
             url: new URL(window.location.href),
-            ignoreDisplayFilter: ["duration", "view_type"]
+
+            ignoreDisplayFilter: ["view_type"]
         };
     },
 
     computed: {
         ...mapState({
             tableData: state => state.tableData,
+
             customTabFilter: state => state.customTabFilter,
+
             selectedTableRows: state => state.selectedTableRows
         }),
 
@@ -301,7 +294,7 @@ export default {
             if (duration) {
                 duration = duration.val.split(",");
 
-                var timestamp = Date.parse(duration[0]);
+                let timestamp = Date.parse(duration[0]);
 
                 if (isNaN(timestamp) == false) {
                     this.custom_filter = duration;
@@ -353,7 +346,10 @@ export default {
         });
 
         EventBus.$on("updateFilter", data => {
-            if (this.customTabFilters.includes(data.key) && data.value == "custom") {
+            if (
+                this.customTabFilters.includes(data.key) &&
+                data.value == "custom"
+            ) {
                 setTimeout(() => {
                     $(".custom-design-container").toggle();
                 });
@@ -378,13 +374,15 @@ export default {
         searchCollection: function(searchValue) {
             clearTimeout(this.debounce["search"]);
 
+            let sanitizedSearchValue = searchValue.trim();
+
             this.debounce["search"] = setTimeout(() => {
-                this.formURL("search", "all", searchValue, "Search");
+                this.formURL("search", "all", sanitizedSearchValue, "Search");
             }, 1000);
         },
 
         setParamsAndUrl: function() {
-            var params = new URL(window.location.href).search;
+            let params = new URL(window.location.href).search;
 
             if (params.slice(1, params.length).length > 0) {
                 this.arrayFromUrl();
@@ -394,7 +392,7 @@ export default {
         },
 
         formURL: function(column, condition, response, label) {
-            var obj = {};
+            let obj = {};
 
             if (
                 column === "" ||
@@ -501,7 +499,7 @@ export default {
         },
 
         makeURL: function() {
-            var newParams = "";
+            let newParams = "";
 
             for (let i = 0; i < this.filters.length; i++) {
                 if (
@@ -589,7 +587,7 @@ export default {
                 }
 
                 if (obj.cond == "bw") {
-                    var timestamp = Date.parse(obj.val.split(",")[0]);
+                    let timestamp = Date.parse(obj.val.split(",")[0]);
 
                     if (isNaN(timestamp) == false) {
                         obj.prettyValue = `${obj.val.replaceAll(",", " - ")}`;
@@ -642,7 +640,7 @@ export default {
                         data.val
                     }`;
                 } else if (data.cond == "bw") {
-                    var timestamp = Date.parse(data.val.split(",")[0]);
+                    let timestamp = Date.parse(data.val.split(",")[0]);
 
                     if (isNaN(timestamp) == false) {
                         data.prettyValue = `${data.val.replaceAll(",", " - ")}`;
@@ -658,7 +656,7 @@ export default {
         },
 
         setActiveTabs: function() {
-            var defaultSelectrdIndex = [];
+            let defaultSelectedIndex = [];
 
             for (const index in this.tableData.tabFilters) {
                 for (const tabValueIndex in this.tableData.tabFilters[index]
@@ -667,7 +665,7 @@ export default {
                         this.tableData.tabFilters[index].values[tabValueIndex]
                             .isActive
                     ) {
-                        defaultSelectrdIndex[index] = tabValueIndex;
+                        defaultSelectedIndex[index] = tabValueIndex;
                     }
 
                     this.tableData.tabFilters[index].values[
@@ -677,7 +675,7 @@ export default {
             }
 
             for (const index in this.tableData.tabFilters) {
-                var applied = false;
+                let applied = false;
 
                 this.filters.forEach(filter => {
                     if (filter.column == this.tableData.tabFilters[index].key) {
@@ -704,24 +702,40 @@ export default {
 
                 if (! applied) {
                     this.tableData.tabFilters[index].values[
-                        defaultSelectrdIndex[index]
+                        defaultSelectedIndex[index]
                     ].isActive = true;
                 }
             }
         },
 
         onSubmit: function(event) {
+            this.toggleButtonDisable(true);
+
             if (! this.massActionValue.action) {
-                alert('Please select an action to perform.')
+                this.toggleButtonDisable(false);
+
+                this.addFlashMessages({
+                    type: "error",
+                    message: this.__("ui.datagrid.mandatory_mass_action")
+                });
 
                 return;
             }
 
-            this.toggleButtonDisable(true);
-
-            if (! confirm('Do you really want to perform this action?')) {
+            if (this.massActionValue.type !== 'delete' && this.massActionOptionValue === 'NA') {
                 this.toggleButtonDisable(false);
-                
+
+                this.addFlashMessages({
+                    type: "error",
+                    message: this.__("ui.datagrid.mandatory_mass_action")
+                });
+
+                return;
+            }
+
+            if (! confirm(this.__("ui.datagrid.massaction.delete"))) {
+                this.toggleButtonDisable(false);
+
                 return;
             }
 
@@ -753,6 +767,11 @@ export default {
                         })
                         .catch(error => {
                             this.toggleButtonDisable(false);
+
+                            this.addFlashMessages({
+                                type: "error",
+                                message: error.response.data.message
+                            });
                         });
                 } else {
                     this.toggleButtonDisable(false);
@@ -762,9 +781,13 @@ export default {
             });
         },
 
+        changeDateRange: function(event) {
+            this.custom_filter = event;
+        },
+
         applyCustomFilter: function() {
             if (this.custom_filter[0] && this.custom_filter[1]) {
-                var data = {
+                let data = {
                     cond: "bw",
                     key: "duration",
                     value: `${this.custom_filter[0]},${this.custom_filter[1]}`
@@ -787,6 +810,24 @@ export default {
                         this.perPage = "10";
                     }
 
+                    if (this.filters[index].column == "duration") {
+                        let key = "duration";
+
+                        let specificRangeDiv = document.querySelector(`#dateRange${key}`);
+
+                        let datePickers = specificRangeDiv.querySelectorAll('.flatpickr-input');
+
+                        datePickers.forEach((datePicker) => {
+                            let fp = datePicker._flatpickr;
+
+                            fp.set('minDate', '');
+
+                            fp.set('maxDate', '');
+                        });
+
+                        $(datePickers).val('');
+                    }
+
                     this.filters.splice(index, 1);
 
                     this.makeURL();
@@ -795,7 +836,30 @@ export default {
         },
 
         updateFilterValue: function() {
-            this.filters = this.filters.map(filter => {
+            let allFilter = this.filters.filter(filter => filter.val === "all");
+
+            if (allFilter.length > 0) {
+                let viewType =
+                    this.filters.find(
+                        filter => filter.column === "view_type"
+                    ) ?? false;
+
+                if (viewType) {
+                    allFilter.push(viewType);
+                }
+
+                this.filters = this.generateNewFilters(allFilter);
+            } else {
+                let otherFilters = this.filters.filter(
+                    filter => filter.val !== "all"
+                );
+
+                this.filters = this.generateNewFilters(otherFilters);
+            }
+        },
+
+        generateNewFilters: function(filters) {
+            return filters.map(filter => {
                 let column = this.$store.state.tableData.columns.find(
                     column => column.index == filter.column
                 );

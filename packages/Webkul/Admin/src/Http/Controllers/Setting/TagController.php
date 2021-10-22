@@ -86,6 +86,48 @@ class TagController extends Controller
     }
 
     /**
+     * Show the form for editing the specified tag.
+     *
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit($id)
+    {
+        $tag = $this->tagRepository->findOrFail($id);
+
+        return view('admin::settings.tags.edit', compact('tag'));
+    }
+
+    /**
+     * Update the specified tag in storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        $validator = Validator::make(request()->all(), [
+            'name' => 'required|unique:tags,name,' . $id,
+        ]);
+
+        if ($validator->fails()) {
+            session()->flash('error', $validator->errors()->first('name'));
+
+            return redirect()->back();
+        }
+        
+        Event::dispatch('settings.tag.update.before', $id);
+
+        $tag = $this->tagRepository->update(request()->all(), $id);
+
+        Event::dispatch('settings.tag.update.after', $tag);
+
+        session()->flash('success', trans('admin::app.settings.tags.update-success'));
+
+        return redirect()->route('admin.settings.tags.index');
+    }
+
+    /**
      * Remove the specified type from storage.
      *
      * @param  int  $id
@@ -103,19 +145,16 @@ class TagController extends Controller
             Event::dispatch('settings.tag.delete.after', $id);
 
             return response()->json([
-                'status'  => true,
                 'message' => trans('admin::app.settings.tags.delete-success'),
             ], 200);
         } catch(\Exception $exception) {
             return response()->json([
-                'status'  => false,
                 'message' => trans('admin::app.settings.tags.delete-failed'),
             ], 400);
         }
 
         return response()->json([
-            'status'    => false,
-            'message'   => trans('admin::app.settings.tags.delete-failed'),
+            'message' => trans('admin::app.settings.tags.delete-failed'),
         ], 400);
     }
 
@@ -131,5 +170,25 @@ class TagController extends Controller
         ]);
 
         return response()->json($results);
+    }
+
+    /**
+     * Mass Delete the specified resources.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function massDestroy()
+    {
+        foreach (request('rows') as $tagId) {
+            Event::dispatch('settings.tag.delete.before', $tagId);
+
+            $this->tagRepository->delete($tagId);
+
+            Event::dispatch('settings.tag.delete.after', $tagId);
+        }
+
+        return response()->json([
+            'message' => trans('admin::app.response.destroy-success', ['name' => trans('admin::app.settings.tags.title')]),
+        ]);
     }
 }

@@ -49,7 +49,7 @@
 
                             {!! view_render_event('admin.quotes.create.form_buttons.after') !!}
                         </div>
-        
+
                         <div class="panel-body">
                             {!! view_render_event('admin.quotes.create.form_controls.before') !!}
 
@@ -190,7 +190,7 @@
                                 {{ __('admin::app.quotes.total') }}
                                 <span class="currency-code">({{ core()->currencySymbol(config('app.currency')) }})</span>
                             </th>
-                            
+
                             <th class="actions"></th>
                         </tr>
                     </thead>
@@ -211,7 +211,7 @@
 
                 <a class="add-more-link" href @click.prevent="addProduct">+ {{ __('admin::app.common.add_more') }}</a>
             </div>
-            
+
             <div class="quote-summary">
                 <table>
                     <tr>
@@ -269,7 +269,14 @@
 
                         <td>
                             <div class="form-group">
-                                <input type="text" name="adjustment_amount" class="control" v-model="adjustmentAmount">
+                                <input
+                                    type="text"
+                                    name="adjustment_amount"
+                                    class="control"
+                                    v-model="adjustmentAmount"
+                                    v-validate="'decimal:4'"
+                                    data-vv-as="&quot;{{ __('admin::app.quotes.adjustment') }}&quot;"
+                                    @keyup="validateAmount">
                             </div>
                         </td>
                     </tr>
@@ -343,7 +350,7 @@
                         :name="[inputName + '[quantity]']"
                         class="control"
                         v-model="product.quantity"
-                        v-validate="'required'"
+                        v-validate="'required|decimal:4'"
                         data-vv-as="&quot;{{ __('admin::app.quotes.quantity') }}&quot;"
                     />
 
@@ -360,7 +367,7 @@
                         :name="[inputName + '[price]']"
                         class="control"
                         v-model="product.price"
-                        v-validate="'required'"
+                        v-validate="'required|decimal:4'"
                         data-vv-as="&quot;{{ __('admin::app.quotes.price') }}&quot;"
                     />
 
@@ -389,7 +396,7 @@
                         :name="[inputName + '[discount_amount]']"
                         class="control"
                         v-model="product.discount_amount"
-                        v-validate="'required'"
+                        v-validate="'required|decimal:4'"
                         data-vv-as="&quot;{{ __('admin::app.quotes.discount') }}&quot;"
                     />
 
@@ -406,7 +413,7 @@
                         :name="[inputName + '[tax_amount]']"
                         class="control"
                         v-model="product.tax_amount"
-                        v-validate="'required'"
+                        v-validate="'required|decimal:4'"
                         data-vv-as="&quot;{{ __('admin::app.quotes.tax') }}&quot;"
                     />
 
@@ -421,13 +428,13 @@
                     <input
                         type="text"
                         class="control"
-                        :value="parseInt(product.price * product.quantity) + parseInt(product.tax_amount) - parseInt(product.discount_amount)"
+                        :value="parseFloat(product.price * product.quantity) + parseFloat(product.tax_amount) - parseFloat(product.discount_amount)"
                         readonly/>
                 </div>
             </td>
 
             <td class="actions">
-                <i class="icon trash-icon" @click="removeProduct"></i>
+                <i class="icon trash-icon" @click="removeProduct" v-if="this.$parent.products.length > 1"></i>
             </td>
         </tr>
     </script>
@@ -462,7 +469,7 @@
                     var total = 0;
 
                     this.products.forEach(product => {
-                        total += parseInt(product.price * product.quantity);
+                        total += parseFloat(product.price * product.quantity);
                     });
 
                     return total;
@@ -472,7 +479,7 @@
                     var total = 0;
 
                     this.products.forEach(product => {
-                        total += parseInt(product.discount_amount);
+                        total += parseFloat(product.discount_amount);
                     });
 
                     return total;
@@ -482,7 +489,7 @@
                     var total = 0;
 
                     this.products.forEach(product => {
-                        total += parseInt(product.tax_amount);
+                        total += parseFloat(product.tax_amount);
                     });
 
                     return total;
@@ -492,7 +499,7 @@
                     var total = 0;
 
                     this.products.forEach(product => {
-                        total += parseInt(product.price * product.quantity) + parseInt(product.tax_amount) - parseInt(product.discount_amount) + parseInt(this.adjustmentAmount);
+                        total += parseFloat(product.price * product.quantity) + parseFloat(product.tax_amount) - parseFloat(product.discount_amount) + parseFloat(this.adjustmentAmount);
                     });
 
                     return total;
@@ -510,7 +517,7 @@
                         'discount_amount': null,
                         'tax_amount': null,
                     })
-                }, 
+                },
 
                 removeProduct: function(product) {
                     if (this.products.length == 1) {
@@ -528,6 +535,10 @@
 
                         Vue.delete(this.products, index);
                     }
+                },
+
+                validateAmount: function () {
+                    this.adjustmentAmount = this.adjustmentAmount.replace(/[^0-9.]/g, '');
                 }
             }
         });
@@ -577,11 +588,11 @@
                     }
 
                     var self = this;
-                    
+
                     this.$http.get("{{ route('admin.products.search') }}", {params: {query: this.product['name']}})
                         .then (function(response) {
                             self.$parent.products.forEach(function(addedProduct) {
-                                
+
                                 response.data.forEach(function(product, index) {
                                     if (product.id == addedProduct.product_id) {
                                         response.data.splice(index, 1);

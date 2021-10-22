@@ -12,6 +12,13 @@ use Webkul\Attribute\Repositories\AttributeValueRepository;
 class LeadRepository extends Repository
 {
     /**
+     * StageRepository object
+     *
+     * @var \Webkul\Lead\Repositories\StageRepository
+     */
+    protected $stageRepository;
+
+    /**
      * PersonRepository object
      *
      * @var \Webkul\Contact\Repositories\PersonRepository
@@ -35,6 +42,7 @@ class LeadRepository extends Repository
     /**
      * Create a new repository instance.
      *
+     * @param  \Webkul\Lead\Repositories\StageRepository  $stageRepository
      * @param  \Webkul\Contact\Repositories\PersonRepository  $personRepository
      * @param  \Webkul\Lead\Repositories\ProductRepository  $productRepository
      * @param  \Webkul\Attribute\Repositories\AttributeValueRepository  $attributeValueRepository
@@ -42,11 +50,14 @@ class LeadRepository extends Repository
      * @return void
      */
     public function __construct(
+        StageRepository $stageRepository,
         PersonRepository $personRepository,
         ProductRepository $productRepository,
         AttributeValueRepository $attributeValueRepository,
         Container $container
     ) {
+        $this->stageRepository = $stageRepository;
+
         $this->personRepository = $personRepository;
 
         $this->productRepository = $productRepository;
@@ -67,16 +78,30 @@ class LeadRepository extends Repository
     }
 
     /**
-     * @param array $data
+     * @param  integer  $pipelineId
+     * @param  string  $term
+     * @param  string  $createdAtRange
      * @return \Webkul\Lead\Contracts\Lead
      */
-    public function getLeads($searchedKeyword, $createdAtRange)
+    public function getLeads($pipelineId, $term, $createdAtRange)
     {
         return $this
-                ->select('leads.id as id', 'title', 'lead_value', 'lead_stages.name as status', 'persons.name as person_name', 'lead_stages.id as stage_id')
+                ->select(
+                    'leads.id as id',
+                    'leads.created_at as created_at',
+                    'title',
+                    'lead_value',
+                    'persons.name as person_name',
+                    'lead_pipelines.id as lead_pipeline_id',
+                    'lead_pipeline_stages.name as status',
+                    'lead_pipeline_stages.id as lead_pipeline_stage_id'
+                )
+                ->addSelect(\DB::raw('DATEDIFF(leads.created_at + INTERVAL lead_pipelines.rotten_days DAY, now()) as rotten_days'))
                 ->leftJoin('persons', 'leads.person_id', '=', 'persons.id')
-                ->leftJoin('lead_stages', 'leads.lead_stage_id', '=', 'lead_stages.id')
-                ->where("title", 'like', "%$searchedKeyword%")
+                ->leftJoin('lead_pipelines', 'leads.lead_pipeline_id', '=', 'lead_pipelines.id')
+                ->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
+                ->where("title", 'like', "%$term%")
+                ->where("leads.lead_pipeline_id", $pipelineId)
                 ->when($createdAtRange, function($query) use ($createdAtRange) {
                     return $query->whereBetween('leads.created_at', $createdAtRange);
                 })
@@ -110,10 +135,12 @@ class LeadRepository extends Repository
             ]));
         }
 
+        $stage = $this->stageRepository->find($data['lead_pipeline_stage_id']);
+
         $lead = parent::create(array_merge([
-            'person_id'        => $person->id,
-            'lead_pipeline_id' => 1,
-            'lead_stage_id'    => $data['lead_stage_id'] ?? 1,
+            'person_id'              => $person->id,
+            'lead_pipeline_id'       => 1,
+            'lead_pipeline_stage_id' => 1,
         ], $data));
 
         $this->attributeValueRepository->save($data, $lead->id);
@@ -154,8 +181,14 @@ class LeadRepository extends Repository
             ], $data);
         }
 
-        if (isset($data['closed_at']) && ! $data['closed_at']) {
-            $data['closed_at'] = Carbon::now();
+        if (isset($data['lead_pipeline_stage_id'])) {
+            $stage = $this->stageRepository->find($data['lead_pipeline_stage_id']);
+
+            if (in_array($stage->code, ['won', 'lost'])) {
+                $data['closed_at'] = $data['closed_at'] ?? Carbon::now();
+            } else {
+                $data['closed_at'] = null;
+            }
         }
 
         $lead = parent::update($data, $id);
@@ -192,41 +225,25 @@ class LeadRepository extends Repository
     }
 
     /**
-     * Retreives lead count based on lead stage name
+     * Retrieves lead count based on lead stage name
      *
      * @return number
      */
     public function getLeadsCount($leadStage, $startDate, $endDate)
     {
         $query = $this
-                ->whereBetween('leads.created_at', [$startDate, $endDate])
-                ->where(function ($query) {
-                    if (($currentUser = auth()->guard('user')->user())->view_permission == "individual") {
-                        $query->where('leads.user_id', $currentUser->id);
-                    }
-                });
+            ->whereBetween('leads.created_at', [$startDate, $endDate])
+            ->where(function ($query) {
+                if (($currentUser = auth()->guard('user')->user())->view_permission == "individual") {
+                    $query->where('leads.user_id', $currentUser->id);
+                }
+            });
 
         if ($leadStage != "all") {
-            $query
-                ->leftJoin('lead_stages', 'leads.lead_stage_id', '=', 'lead_stages.id')
-                ->where('lead_stages.name', $leadStage);
+            $query->leftJoin('lead_pipeline_stages', 'leads.lead_pipeline_stage_id', '=', 'lead_pipeline_stages.id')
+                ->where('lead_pipeline_stages.name', $leadStage);
         }
 
-        return $query
-                ->get()
-                ->count();
-    }
-
-    /**
-     * Retreives user details by lead id
-     *
-     * @return \Webkul\Lead\Contracts\Lead
-     */
-    public function getUserByLeadId($leadId)
-    {
-        return $this->select('users.id', 'users.email', 'users.name')
-                ->where('leads.id', $leadId)
-                ->leftJoin('users', 'leads.user_id', 'users.id')
-                ->first();
+        return $query->get()->count();
     }
 }

@@ -2,11 +2,14 @@
 
 namespace Webkul\Admin\DataGrids\Contact;
 
-use Webkul\UI\DataGrid\DataGrid;
 use Illuminate\Support\Facades\DB;
+use Webkul\Admin\Traits\ProvideDropdownOptions;
+use Webkul\UI\DataGrid\DataGrid;
 
 class PersonDataGrid extends DataGrid
 {
+    use ProvideDropdownOptions;
+
     /**
      * Prepare query builder.
      *
@@ -41,23 +44,23 @@ class PersonDataGrid extends DataGrid
         $this->addColumn([
             'index'      => 'id',
             'label'      => trans('admin::app.datagrid.id'),
-            'type'       => 'hidden',
+            'type'       => 'string',
             'sortable'   => true,
         ]);
 
         $this->addColumn([
-            'index'             => 'person_name',
-            'label'             => trans('admin::app.datagrid.name'),
-            'type'              => 'string',
-            'sortable'          => true,
+            'index'    => 'person_name',
+            'label'    => trans('admin::app.datagrid.name'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'             => 'emails',
-            'label'             => trans('admin::app.datagrid.emails'),
-            'type'              => 'string',
-            'sortable'          => false,
-            'closure'           => function ($row) {
+            'index'    => 'emails',
+            'label'    => trans('admin::app.datagrid.emails'),
+            'type'     => 'string',
+            'sortable' => false,
+            'closure'  => function ($row) {
                 $emails = json_decode($row->emails, true);
 
                 if ($emails) {
@@ -67,11 +70,11 @@ class PersonDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'             => 'contact_numbers',
-            'label'             => trans('admin::app.datagrid.contact_numbers'),
-            'type'              => 'string',
-            'sortable'          => false,
-            'closure'           => function ($row) {
+            'index'    => 'contact_numbers',
+            'label'    => trans('admin::app.datagrid.contact_numbers'),
+            'type'     => 'string',
+            'sortable' => false,
+            'closure'  => function ($row) {
                 $contactNumbers = json_decode($row->contact_numbers, true);
 
                 if ($contactNumbers) {
@@ -81,11 +84,11 @@ class PersonDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'              => 'organization',
-            'label'              => trans('admin::app.datagrid.organization_name'),
-            'type'               => 'dropdown',
-            'dropdown_options'   => app(\Webkul\Contact\Repositories\OrganizationRepository::class)->get(['id as value', 'name as label'])->toArray(),
-            'sortable'           => false,
+            'index'            => 'organization',
+            'label'            => trans('admin::app.datagrid.organization_name'),
+            'type'             => 'dropdown',
+            'dropdown_options' => $this->getOrganizationDropdownOptions(),
+            'sortable'         => false,
         ]);
     }
 

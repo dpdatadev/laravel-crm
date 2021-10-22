@@ -27,7 +27,7 @@ return [
         'sort'       => 4,
         'icon-class' => 'emails-icon',
     ], [
-        'key'        => 'mail.compose',
+        'key'        => 'mail.create',
         'name'       => 'admin::app.layouts.mail.compose',
         'route'      => 'admin.mail.index',
         'params'     => ['route' => 'compose'],
@@ -107,6 +107,7 @@ return [
     ], [
         'key'        => 'settings.user',
         'name'       => 'admin::app.layouts.user',
+        'route'      => 'admin.settings.groups.index',
         'info'       => 'admin::app.layouts.user-info',
         'sort'       => 1,
     ], [
@@ -134,25 +135,34 @@ return [
         'key'        => 'settings.lead',
         'name'       => 'admin::app.layouts.lead',
         'info'       => 'admin::app.layouts.lead-info',
+        'route'      => 'admin.settings.pipelines.index',
         'sort'       => 2,
+    ], [
+        'key'        => 'settings.lead.pipelines',
+        'name'       => 'admin::app.layouts.pipelines',
+        'info'       => 'admin::app.layouts.pipelines-info',
+        'route'      => 'admin.settings.pipelines.index',
+        'sort'       => 1,
+        'icon-class' => 'pipeline-icon',
     ], [
         'key'        => 'settings.lead.sources',
         'name'       => 'admin::app.layouts.sources',
         'info'       => 'admin::app.layouts.sources-info',
         'route'      => 'admin.settings.sources.index',
-        'sort'       => 1,
+        'sort'       => 2,
         'icon-class' => 'source-icon',
     ], [
         'key'        => 'settings.lead.types',
         'name'       => 'admin::app.layouts.types',
         'info'       => 'admin::app.layouts.types-info',
         'route'      => 'admin.settings.types.index',
-        'sort'       => 2,
+        'sort'       => 3,
         'icon-class' => 'type-icon',
     ], [
         'key'        => 'settings.automation',
         'name'       => 'admin::app.layouts.automation',
         'info'       => 'admin::app.layouts.automation-info',
+        'route'      => 'admin.settings.attributes.index',
         'sort'       => 3,
     ], [
         'key'        => 'settings.automation.attributes',
@@ -179,6 +189,7 @@ return [
         'key'        => 'settings.other_settings',
         'name'       => 'admin::app.layouts.other-settings',
         'info'       => 'admin::app.layouts.other-settings-info',
+        'route'      => 'admin.settings.tags.index',
         'sort'       => 4,
         'icon-class' => 'settings-icon',
     ], [

@@ -3,6 +3,7 @@
 namespace Webkul\Lead\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 use Webkul\Activity\Models\ActivityProxy;
 use Webkul\Contact\Models\PersonProxy;
 use Webkul\User\Models\UserProxy;
@@ -15,6 +16,11 @@ use Webkul\Lead\Contracts\Lead as LeadContract;
 class Lead extends Model implements LeadContract
 {
     use CustomAttribute;
+
+    protected $casts = [
+        'closed_at'           => 'datetime',
+        'expected_close_date' => 'date',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -34,7 +40,7 @@ class Lead extends Model implements LeadContract
         'lead_source_id',
         'lead_type_id',
         'lead_pipeline_id',
-        'lead_stage_id',
+        'lead_pipeline_stage_id',
     ];
 
     /**
@@ -74,15 +80,15 @@ class Lead extends Model implements LeadContract
      */
     public function pipeline()
     {
-        return $this->belongsTo(PipelineProxy::modelClass());
+        return $this->belongsTo(PipelineProxy::modelClass(), 'lead_pipeline_id');
     }
 
     /**
-     * Get the stage that owns the lead.
+     * Get the pipeline stage that owns the lead.
      */
     public function stage()
     {
-        return $this->belongsTo(StageProxy::modelClass(), 'lead_stage_id');
+        return $this->belongsTo(StageProxy::modelClass(), 'lead_pipeline_stage_id');
     }
 
     /**
@@ -123,5 +129,19 @@ class Lead extends Model implements LeadContract
     public function tags()
     {
         return $this->belongsToMany(TagProxy::modelClass(), 'lead_tags');
+    }
+
+    /**
+     * Returns the rotten days 
+     */
+    public function getRottenDaysAttribute()
+    {
+        if (in_array($this->stage->code, ['won', 'lost'])) {
+            return 0;
+        }
+
+        $rottenDate = $this->created_at->addDays($this->pipeline->rotten_days);
+
+        return $rottenDate->diffInDays(Carbon::now(), false);
     }
 }

@@ -40,6 +40,31 @@
                         </div>
                     </li>
                 </ul>
+
+                <div class="date-panel">
+                    <span class="pull-left">
+                        <i class="icon calendar-icon"></i>
+                        <label>{{ __('admin::app.leads.created-date:') }}</label>
+                        <span>{{ $lead->created_at->diffForHumans() }}</span>
+                    </span>
+
+                    <span class="pull-right">
+
+                        @if ($lead->closed_at && in_array($lead->stage->code, ['won', 'lost']))
+                            
+                            <i class="icon calendar-icon"></i>
+                            <label>{{ __('admin::app.leads.closed-date:') }}</label>
+                            <span>{{ $lead->closed_at->diffForHumans() }}</span>
+
+                        @elseif ($lead->expected_close_date)
+
+                             <i class="icon calendar-icon"></i>
+                            <label>{{ __('admin::app.leads.expected-close-date:') }}</label>
+                            <span>{{ $lead->expected_close_date->diffForHumans() }}</span>
+
+                        @endif
+                    </span>
+                </div>
             </div>
 
             <form action="{{ route('admin.leads.update', $lead->id) }}" method="post" data-vv-scope="change-stage-form">
@@ -57,7 +82,7 @@
 
                         <input name="_method" type="hidden" value="PUT">
 
-                        <input type="hidden" name="lead_stage_id" :value="this[nextStageCode] && this[nextStageCode].id">
+                        <input type="hidden" name="lead_pipeline_stage_id" :value="this[nextStageCode] && this[nextStageCode].id">
 
                         <div class="form-group" v-if="this[nextStageCode] && this[nextStageCode].code == 'lost'">
                             <label>{{ __('admin::app.leads.lost-reason') }}</label>
@@ -97,7 +122,7 @@
 
                     nextStageCode: null,
 
-                    customStages: @json(app('\Webkul\Lead\Repositories\StageRepository')->all()),
+                    customStages: @json($lead->pipeline->stages),
                 }
             },
 
@@ -119,7 +144,7 @@
                 changeStage: function(stage) {
                     var self = this;
 
-                    this.$http.put("{{ route('admin.leads.update', $lead->id) }}", {'lead_stage_id': stage.id})
+                    this.$http.put("{{ route('admin.leads.update', $lead->id) }}", {'lead_pipeline_stage_id': stage.id})
                         .then (function(response) {
                             self.currentStage = stage;
 

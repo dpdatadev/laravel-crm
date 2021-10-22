@@ -50,8 +50,9 @@ class Menu
             $configurations[$index]['params'] = str_replace(".", "/", $configuration['key']);
         }
 
-        // $adminMenus = array_merge(config('menu.admin'), $configurations);
         $adminMenus = config('menu.admin');
+
+        $currentUserRole = auth()->guard('user')->user()->role;
 
         foreach ($adminMenus as $index => $item) {
             if (! bouncer()->hasPermission($item['key'])) {
@@ -66,8 +67,31 @@ class Menu
                 }
             }
 
+            if ($index + 1 < count(config('menu.admin')) && $currentUserRole->permission_type == 'custom') {
+                $permission = config('menu.admin')[$index + 1];
+
+                if (substr_count($permission['key'], '.') == 1 && substr_count($item['key'], '.') == 0) {
+
+                    foreach ($currentUserRole->permissions as $key => $value) {
+                        if ($item['key'] == $value) {
+                            $neededItem = $currentUserRole->permissions[$key + 1];
+
+                            foreach (config('menu.admin') as $key1 => $findMatched) {
+
+                                if ($findMatched['key'] == $neededItem) {
+                                    $item['route'] = $findMatched['route'];
+
+                                    $item['url'] = route($findMatched['route'], $findMatched['params'] ?? []);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             $tree->add($item, 'menu');
         }
+
 
         $tree->items = core()->sortItems($tree->items);
 

@@ -19,7 +19,7 @@ class AttributeDataGrid extends DataGrid
         $this->tabFilters = [
             [
                 'type'      => 'pill',
-                'key'       => 'type',
+                'key'       => 'entity_type',
                 'condition' => 'eq',
                 'values'    => [
                     [
@@ -69,7 +69,7 @@ class AttributeDataGrid extends DataGrid
             );
 
         $this->addFilter('id', 'attributes.id');
-        $this->addFilter('type', 'entity_type');
+        $this->addFilter('type', 'attributes.type');
 
         $this->setQueryBuilder($queryBuilder);
     }
@@ -82,24 +82,24 @@ class AttributeDataGrid extends DataGrid
     public function addColumns()
     {
         $this->addColumn([
-            'index'           => 'id',
-            'label'           => trans('admin::app.datagrid.id'),
-            'type'            => 'string',
-            'sortable'        => true,
+            'index'    => 'id',
+            'label'    => trans('admin::app.datagrid.id'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'           => 'code',
-            'label'           => trans('admin::app.datagrid.code'),
-            'type'            => 'string',
-            'sortable'        => true,
+            'index'    => 'code',
+            'label'    => trans('admin::app.datagrid.code'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'           => 'name',
-            'label'           => trans('admin::app.datagrid.name'),
-            'type'            => 'string',
-            'sortable'        => true,
+            'index'    => 'name',
+            'label'    => trans('admin::app.datagrid.name'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
@@ -113,10 +113,10 @@ class AttributeDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'      => 'type',
-            'label'      => trans('admin::app.datagrid.type'),
-            'type'       => 'string',
-            'sortable'   => true,
+            'index'    => 'type',
+            'label'    => trans('admin::app.datagrid.type'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
     }
 

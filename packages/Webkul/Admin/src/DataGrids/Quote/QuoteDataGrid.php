@@ -3,10 +3,34 @@
 namespace Webkul\Admin\DataGrids\Quote;
 
 use Illuminate\Support\Facades\DB;
+use Webkul\Admin\Traits\ProvideDropdownOptions;
 use Webkul\UI\DataGrid\DataGrid;
+use Webkul\User\Repositories\UserRepository;
 
 class QuoteDataGrid extends DataGrid
 {
+    use ProvideDropdownOptions;
+
+    /**
+     * User repository instance.
+     *
+     * @var \Webkul\User\Repositories\UserRepository
+     */
+    protected $userRepository;
+
+    /**
+     * Create datagrid instance.
+     *
+     * @param \Webkul\User\Repositories\UserRepository  $userRepository
+     * @return void
+     */
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+
+        parent::__construct();
+    }
+
     /**
      * Prepare query builder.
      *
@@ -24,6 +48,7 @@ class QuoteDataGrid extends DataGrid
                 'quotes.tax_amount',
                 'quotes.adjustment_amount',
                 'quotes.grand_total',
+                'quotes.created_at',
                 'users.id as user_id',
                 'users.name as user_name',
                 'persons.id as person_id',
@@ -36,7 +61,7 @@ class QuoteDataGrid extends DataGrid
 
         if ($currentUser->view_permission != 'global') {
             if ($currentUser->view_permission == 'group') {
-                $queryBuilder->whereIn('quotes.user_id', app('\Webkul\User\Repositories\UserRepository')->getCurrentUserGroupsUserIds());
+                $queryBuilder->whereIn('quotes.user_id', $this->userRepository->getCurrentUserGroupsUserIds());
             } else {
                 $queryBuilder->where('quotes.user_id', $currentUser->id);
             }
@@ -46,6 +71,7 @@ class QuoteDataGrid extends DataGrid
         $this->addFilter('user', 'quotes.user_id');
         $this->addFilter('user_name', 'quotes.user_id');
         $this->addFilter('person_name', 'persons.name');
+        $this->addFilter('created_at', 'quotes.created_at');
 
         $this->setQueryBuilder($queryBuilder);
     }
@@ -58,19 +84,19 @@ class QuoteDataGrid extends DataGrid
     public function addColumns()
     {
         $this->addColumn([
-            'index'             => 'subject',
-            'label'             => trans('admin::app.datagrid.subject'),
-            'type'              => 'string',
-            'sortable'          => true,
+            'index'    => 'subject',
+            'label'    => trans('admin::app.datagrid.subject'),
+            'type'     => 'string',
+            'sortable' => true,
         ]);
 
         $this->addColumn([
-            'index'              => 'user_name',
-            'label'              => trans('admin::app.datagrid.sales-person'),
-            'type'               => 'dropdown',
-            'dropdown_options'   => app('\Webkul\User\Repositories\UserRepository')->get(['id as value', 'name as label'])->toArray(),
-            'sortable'           => true,
-            'closure'            => function ($row) {
+            'index'            => 'user_name',
+            'label'            => trans('admin::app.datagrid.sales-person'),
+            'type'             => 'dropdown',
+            'dropdown_options' => $this->getUserDropdownOptions(),
+            'sortable'         => true,
+            'closure'          => function ($row) {
                 $route = urldecode(route('admin.settings.users.index', ['id[eq]' => $row->user_id]));
 
                 return "<a href='" . $route . "'>" . $row->user_name . "</a>";
@@ -78,11 +104,11 @@ class QuoteDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'           => 'person_name',
-            'label'           => trans('admin::app.datagrid.person'),
-            'type'            => 'string',
-            'sortable'        => true,
-            'closure'         => function ($row) {
+            'index'    => 'person_name',
+            'label'    => trans('admin::app.datagrid.person'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 $route = urldecode(route('admin.contacts.persons.index', ['id[eq]' => $row->person_id]));
 
                 return "<a href='" . $route . "'>" . $row->person_name . "</a>";
@@ -90,52 +116,63 @@ class QuoteDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'         => 'sub_total',
-            'label'         => trans('admin::app.datagrid.sub-total'),
-            'type'          => 'string',
-            'sortable'      => true,
-            'closure'       => function ($row) {
+            'index'    => 'sub_total',
+            'label'    => trans('admin::app.datagrid.sub-total'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 return core()->formatBasePrice($row->sub_total, 2);
             },
         ]);
 
         $this->addColumn([
-            'index'         => 'discount_amount',
-            'label'         => trans('admin::app.datagrid.discount'),
-            'type'          => 'string',
-            'sortable'      => true,
-            'closure'       => function ($row) {
+            'index'    => 'discount_amount',
+            'label'    => trans('admin::app.datagrid.discount'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 return core()->formatBasePrice($row->discount_amount, 2);
             },
         ]);
 
         $this->addColumn([
-            'index'         => 'tax_amount',
-            'label'         => trans('admin::app.datagrid.tax'),
-            'type'          => 'string',
-            'sortable'      => true,
-            'closure'       => function ($row) {
+            'index'    => 'tax_amount',
+            'label'    => trans('admin::app.datagrid.tax'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 return core()->formatBasePrice($row->tax_amount, 2);
             },
         ]);
 
         $this->addColumn([
-            'index'         => 'adjustment_amount',
-            'label'         => trans('admin::app.datagrid.adjustment'),
-            'type'          => 'string',
-            'sortable'      => true,
-            'closure'       => function ($row) {
+            'index'    => 'adjustment_amount',
+            'label'    => trans('admin::app.datagrid.adjustment'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 return core()->formatBasePrice($row->adjustment_amount, 2);
             },
         ]);
 
         $this->addColumn([
-            'index'         => 'grand_total',
-            'label'         => trans('admin::app.datagrid.grand-total'),
-            'type'          => 'string',
-            'sortable'      => true,
-            'closure'       => function ($row) {
+            'index'    => 'grand_total',
+            'label'    => trans('admin::app.datagrid.grand-total'),
+            'type'     => 'string',
+            'sortable' => true,
+            'closure'  => function ($row) {
                 return core()->formatBasePrice($row->grand_total, 2);
+            },
+        ]);
+
+        $this->addColumn([
+            'index'      => 'created_at',
+            'label'      => trans('admin::app.datagrid.created_at'),
+            'type'       => 'date_range',
+            'searchable' => false,
+            'sortable'   => true,
+            'closure'    => function ($row) {
+                return core()->formatDate($row->created_at);
             },
         ]);
     }
